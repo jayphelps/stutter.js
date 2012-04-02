@@ -11,6 +11,8 @@ I'll be documenting usage shortly. Still very much a work in progress.
 ### Registering your own directive
 
 ``` javascript
+var defines = {};
+
 Stutter.register('define', function (expression) {
   var parts = expression.match(/([a-zA-Z0-9_]+)(?:[ \t]+(.+))?/);
 
@@ -45,11 +47,11 @@ alert(MESSAGE);
 ### Abuse it
 
 ``` javascript
-@define ALERT_HELLO function (msg) { \
-  alert(msg);                        \
-}
+@define ALERT_HELLO (function (msg) { \
+  alert('hello ' + msg);              \
+})
 
-(ALERT_HELLO)('hello world');
+ALERT_HELLO('world');
 ```
 
 License
