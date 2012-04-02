@@ -31,12 +31,6 @@ Stutter.register('define', function (expression) {
 }, defines);
 ```
 
-### Processing source
-
-``` javascript
-var newCode = Stutter.process(originalCode);
-```
-
 ### Use it
 
 ```
@@ -52,6 +46,12 @@ alert(MESSAGE);
 })
 
 ALERT_HELLO('world');
+```
+
+### Process source
+
+``` javascript
+var newCode = Stutter.process(originalCode);
 ```
 
 License
