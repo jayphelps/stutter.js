@@ -1,0 +1,36 @@
+<script src="stutter.js" type="text/javascript"></script>
+
+<script id="example" type="code">
+@define DEBUG
+
+function doSomething() {
+	@ifdef DEBUG
+	console.log('starting to do something...');
+	var start = (new Date()).getTime();
+	@endif
+
+	// Do something like this...
+
+	for (var i = 0; i < 1000000; i++) {
+		// Do something expensive...
+	}
+
+	@ifdef DEBUG
+	var finish =  (new Date()).getTime();
+	console.log('took: ' + (finish-start) + 'ms');
+	@endif
+
+}
+
+doSomething();
+
+</script>
+
+<script>
+
+var source = document.getElementById('example').innerHTML;
+var result = Stutter.process(source);
+
+eval(result);
+
+</script>
