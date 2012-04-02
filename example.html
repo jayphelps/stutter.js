@@ -3,6 +3,10 @@
 <script id="example" type="code">
 @define DEBUG
 
+@define ALERT_HELLO (function (msg) { \
+  alert('hello ' + msg);              \
+})
+
 function doSomething() {
 	@ifdef DEBUG
 	console.log('starting to do something...');
@@ -19,7 +23,8 @@ function doSomething() {
 	var finish =  (new Date()).getTime();
 	console.log('took: ' + (finish-start) + 'ms');
 	@endif
-
+	
+	ALERT_HELLO('world');
 }
 
 doSomething();
