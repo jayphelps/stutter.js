@@ -39,14 +39,14 @@ var newCode = Stutter.process(originalCode);
 
 ### Use it
 
-``` javascript
+```
 @define MESSAGE 'hello world'
 alert(MESSAGE);
 ```
 
 ### Abuse it
 
-``` javascript
+```
 @define ALERT_HELLO (function (msg) { \
   alert('hello ' + msg);              \
 })
