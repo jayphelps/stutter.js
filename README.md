@@ -72,6 +72,11 @@ Stutter.eval(sourceCode);
 Stutter.run();
 ```
 
+Compatibility
+-------------
+
+Fairly untested at this point. By all means report any issues you have or even better fork and send me a pull request.
+
 License
 ------------
 
