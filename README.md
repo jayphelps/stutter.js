@@ -8,6 +8,12 @@ Getting Started
 
 I'll be documenting usage shortly. Still very much a work in progress.
 
+
+### Built in directives
+    * @define
+    * @ifdef/@endif
+    * @import
+
 ### Registering your own directive
 
 ``` javascript
