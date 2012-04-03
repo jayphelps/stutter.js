@@ -9,10 +9,10 @@ Getting Started
 I'll be documenting usage shortly. Still very much a work in progress.
 
 
-### Built in directives
-    * @define
-    * @ifdef/@endif
-    * @import
+### Built-in directives
+* @define
+* @ifdef/@endif
+* @import
 
 ### Registering your own directive
 
@@ -71,6 +71,11 @@ Stutter.eval(sourceCode);
 ``` javascript
 Stutter.run();
 ```
+
+Compatibility
+-------------
+
+Fairly untested at this point. By all means report any issues you have or even better fork and send me a pull request.
 
 License
 ------------
