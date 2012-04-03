@@ -253,7 +253,7 @@
             output = Stutter.process(request.responseText);
 
         } else {
-            throw new StutterError('Non-browser use of @import isn\'t ready yet...sorry');
+            throw new StutterError('Non-browser use isn\'t ready yet...sorry');
         }
 
         return output;
