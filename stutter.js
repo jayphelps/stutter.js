@@ -252,6 +252,7 @@
         var output;
 
         if (isBrowser) {
+            // FIXME: add support for stupid IE...
             var request = new XMLHttpRequest();
 
             request.open('GET', cleanPath, false);   
