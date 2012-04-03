@@ -46,16 +46,24 @@ alert(MESSAGE);
 ALERT_HELLO('world');
 ```
 
-### Process source
+### Process it
 
-Process and return JavaScript as strings.
+* String-to-String
+
 ``` javascript
 var newCode = Stutter.process(oldCode);
 ```
 
-Or process and auto-execute the code.
+* String-to-Execute
+
 ``` javascript
 Stutter.eval(sourceCode);
+```
+
+* Execute all script tags with type set as "application/stutter" or "text/stutter"
+
+``` javascript
+Stutter.run();
 ```
 
 License
