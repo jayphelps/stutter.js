@@ -203,7 +203,7 @@
         
         // Handles single and double quote matched pairs
         // with or without the url() wrapper
-        cleanPath = filePath
+        var cleanPath = filePath
             .replace(/\s*url\(\s*'([^']*)'\)/, '$1')
             .replace(/\s*url\(\s*"([^"]*)"\)/, '$1')
             .replace(/\s*'([^']*)'/, '$1')
