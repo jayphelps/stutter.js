@@ -5,12 +5,18 @@
  * https://github.com/jayphelps/stutter.js
  */
 
-(function (window) {
+(function () {
+	var root  = this;
 
 	// Internal function type checker for handlers
 	var toString = Object.prototype.toString;
+
 	var isFunction = function (obj) {
 		return toString.call(obj) == '[object Function]';
+	};
+
+	var isString = function (obj) {
+		return toString.call(obj) == '[object String]';
 	};
 
 	var Stutter = {
@@ -20,6 +26,20 @@
 		directiveRegEx: null,
 		expandNewlineEscapes: true
 	};
+
+	var isBrowser;
+
+	// CommonJS || Browser
+	if (typeof exports !== 'undefined') {
+		if (typeof module !== 'undefined' && module.exports) {
+			exports = module.exports = Stutter;
+		}
+		exports.Stutter = Stutter;
+		isBrowser = false;
+	} else {
+		root['Stutter'] = Stutter;
+		isBrowser = true;
+	}
 
 	var directives = Stutter.directives;
 	var handlers = Stutter.handlers;
@@ -86,18 +106,22 @@
 
 				if (handlerGenerator) {
 					var expression = match[2];
-					var parts = expression.match(/([a-zA-Z0-9_]+)(?:[ \t]+(.+))?/);
+					var parts = expression.match(/([\S]+)(?:[ \t]+(.+))?/);
 
 					// Call the defined handler generator
 					var handler = handlerGenerator(parts[1], parts[2], expression);
 
-					// Makes sure handler is a function
-					if ( handler && isFunction(handler) ) {
-						// Add it to our existing handlers
-						handlers.push(handler);
-						// Return empty string so this line is replaced and
-						// we move onto the next one
-						return '';
+					if (handler) {
+						// Makes sure handler is a function
+						if ( isFunction(handler) ) {
+							// Add it to our existing handlers
+							handlers.push(handler);
+							// Return empty string so this line is replaced and
+							// we move onto the next one
+							return '';
+						} else if ( isString(handler) ) {
+							return handler;
+						}
 					}
 				}
 			}
@@ -169,6 +193,48 @@
 		};
 	});
 
-	window.Stutter = Stutter;
+	// Doesn't prevent recursive/infinite imports yet!
+	Stutter.register('import', function (filePath) {
+		var errorPrefix = '@import: ';
 
-})(window);
+		if (!filePath) {
+			throw Error(errorPrefix + 'Missing file path');
+		}
+		
+		// Handles single and double quote matched pairs
+		// with or without the url() wrapper
+		cleanPath = filePath
+			.replace(/\s*url\(\s*'([^']*)'\)/, '$1')
+			.replace(/\s*url\(\s*"([^"]*)"\)/, '$1')
+			.replace(/\s*'([^']*)'/, '$1')
+			.replace(/\s*"([^"]*)"/, '$1');
+
+		if (!cleanPath) {
+			throw Error(errorPrefix + 'Invalid import url: ' + filePath);
+		}
+
+		var output;
+
+		if (isBrowser) {
+			var request = new XMLHttpRequest();
+
+			request.open('GET', cleanPath, false);   
+			request.send(null);  
+
+			// Check for 200 status for HTTP, but also catch if responseText
+			// contains anything for local file:// access that return zero status
+			if (request.status !== 200 && !request.responseText) {  
+				throw Error(errorPrefix + 'Importing file failed: ' + filePath + ' with status code: '+request.status);
+			}
+
+			output = Stutter.process(request.responseText);
+
+		} else {
+			throw Error('Non-browser use of @import isn\'t ready yet...sorry');
+		}
+
+		return output;
+		
+	}, defines);
+
+})();
