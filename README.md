@@ -48,8 +48,14 @@ ALERT_HELLO('world');
 
 ### Process source
 
+Process and return JavaScript as strings.
 ``` javascript
-var newCode = Stutter.process(originalCode);
+var newCode = Stutter.process(oldCode);
+```
+
+Or process and auto-execute the code.
+``` javascript
+Stutter.eval(sourceCode);
 ```
 
 License
