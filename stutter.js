@@ -39,6 +39,35 @@
 		};
 	};
 
+	Stutter.eval = function (source) {
+		if (!source) {
+			return false
+		}
+
+		var processed = Stutter.process(source);
+		return eval(processed);
+	};
+
+	Stutter.run = function () {
+		var scripts = document.getElementsByTagName('script');
+
+		for (var i = 0, l = scripts.length; i < l; i++) {
+			switch (scripts[i].type) {
+				case 'text/sutter':
+				case 'application/stutter':
+					var currentScript = scripts[i];
+
+					if (currentScript.src) {
+						// Add code to XMLHttpRequest the source
+					} else {
+						var source = currentScript.innerHTML || currentScript.text;
+						Stutter.eval(source);
+					}
+					break;
+			}
+		}
+	};
+
 	Stutter.process = function (source) {
 		if (Stutter.expandNewlineEscapes) {
 			// Expands newline escapes so they are passed along to handlers.
@@ -57,8 +86,10 @@
 
 				if (handlerGenerator) {
 					var expression = match[2];
+					var parts = expression.match(/([a-zA-Z0-9_]+)(?:[ \t]+(.+))?/);
+
 					// Call the defined handler generator
-					var handler = handlerGenerator(expression);
+					var handler = handlerGenerator(parts[1], parts[2], expression);
 
 					// Makes sure handler is a function
 					if ( handler && isFunction(handler) ) {
@@ -94,15 +125,14 @@
 
 	var defines = {};
 
-	Stutter.register('define', function (expression) {
-		var parts = expression.match(/([a-zA-Z0-9_]+)(?:[ \t]+(.+))?/);
+	Stutter.register('define', function (identifier, replacement) {
 
-		if (!parts) {
+		if (!identifier) {
 			throw Error('Invalid define syntax');
 		}
-		var identifier = parts[1];
+
 		var identifierRegEx = new RegExp(identifier, 'g');
-		var replacement = this[identifier] = parts[2] || true;
+		var replacement = this[identifier] = replacement || true;
 
 		return function (line) {
 			return line.replace(identifierRegEx, replacement);
@@ -110,15 +140,13 @@
 		
 	}, defines);
 
-	Stutter.register('ifdef', function (expression) {
+	Stutter.register('ifdef', function (identifier) {
 		var endif = Stutter.prefix+'endif';
-		var parts = expression.match(/([a-zA-Z0-9_]+)/);
 
-		if (!parts) {
+		if (!identifier) {
 			throw Error('Invalid ifdef syntax');
 		}
 
-		var identifier = parts[1];
 		var isDefined = !!defines[identifier];
 		var hasReachedEndIf = false;
 
