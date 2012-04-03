@@ -8,7 +8,8 @@
 (function (root) {
     "use strict";
 
-    // Internal function type checker for handlers
+    // Internal type checkers
+
     var toString = Object.prototype.toString;
 
     var isFunction = function (obj) {
@@ -19,8 +20,11 @@
         return toString.call(obj) == '[object String]';
     };
 
+    // Assigned when we come across a directive and used if a StutterError
+    // exception is raised 
     var currentDirectiveName;
 
+    // Helper exception for directives
     function StutterError(message) {
         // Help them out if they didn't use "new"
         if ( !(this instanceof StutterError) ) {
@@ -56,17 +60,21 @@
         isBrowser = true;
     }
 
+    // Cache references for quicker lookup
     var directives = Stutter.directives;
     var handlers = Stutter.handlers;
     var directiveRegEx;
 
+    // Alow external changing of the directive token prefix
     Stutter.setToken = function (value) {
         Stutter.token = value;
         directiveRegEx = Stutter.directiveRegEx = new RegExp(value+'(\\S+)(.*)?');
     };
 
+    // Set up our default token
     Stutter.setToken(Stutter.token);
 
+    // Used to register directives both internally and externally
     Stutter.register = function (name, callback, context) {
         context = context || {};
         directives[name] = function () {
@@ -74,6 +82,7 @@
         };
     };
 
+    // Process + JS eval in one "step"
     Stutter.eval = function (source) {
         if (!source) {
             return false
@@ -83,6 +92,7 @@
         return eval(processed);
     };
 
+    // WIP
     Stutter.run = function () {
         var scripts = document.getElementsByTagName('script');
 
@@ -103,6 +113,7 @@
         }
     };
 
+    // Where the magic happens
     Stutter.process = function (source) {
         if (Stutter.expandNewlineEscapes) {
             // Expands newline escapes so they are passed along to handlers.
@@ -162,9 +173,11 @@
                 }
             };
 
+            // Final, processed line
             return line;
         });
-
+    
+        // Final, processed source (pure JavaScript at this point..hopefully)
         return output;
     };
 
