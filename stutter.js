@@ -5,8 +5,8 @@
  * https://github.com/jayphelps/stutter.js
  */
 
-(function () {
-    var root  = this;
+(function (root) {
+    "use strict";
 
     // Internal function type checker for handlers
     var toString = Object.prototype.toString;
@@ -19,8 +19,23 @@
         return toString.call(obj) == '[object String]';
     };
 
+    var currentDirectiveName;
+
+    function StutterError(message) {
+        // Help them out if they didn't use "new"
+        if ( !(this instanceof StutterError) ) {
+            return new StutterError(message);
+        }
+
+        this.name = 'StutterError ' + Stutter.token + currentDirectiveName;
+        this.message = (message || 'Houston, we have a problem. (but I wasn\'t told why)');
+    }
+
+    StutterError.prototype = new Error();
+    StutterError.prototype.constructor = StutterError;
+
     var Stutter = {
-        prefix: '@',
+        token: '@',
         directives: {},
         handlers: [],
         directiveRegEx: null,
@@ -45,12 +60,12 @@
     var handlers = Stutter.handlers;
     var directiveRegEx;
 
-    Stutter.setPrefix = function (value) {
-        Stutter.prefix = value;
+    Stutter.setToken = function (value) {
+        Stutter.token = value;
         directiveRegEx = Stutter.directiveRegEx = new RegExp(value+'(\\S+)(.*)?');
     };
 
-    Stutter.setPrefix(Stutter.prefix);
+    Stutter.setToken(Stutter.token);
 
     Stutter.register = function (name, callback, context) {
         context = context || {};
@@ -105,6 +120,10 @@
                 var handlerGenerator = directives[name];
 
                 if (handlerGenerator) {
+                    // Assign current name so if an exception is thrown we know
+                    // which directive it was
+                    currentDirectiveName = name;
+
                     var expression = match[2];
                     var parts = expression.match(/([\S]+)(?:[ \t]+(.+))?/);
 
@@ -126,14 +145,20 @@
                 }
             }
 
+            // Store copy of the current line in case the variable get's tainted
+            var originalLine = line;
+
             // Apply each of our handlers to the current line
             // in the reverse order they were added so that
             // newer handlers can have priority over older
             for (var i = handlers.length - 1; i >= 0; i--) { 
                 line = handlers[i](line);
-                // Just in case the handler doesn't return a string
+                
+                // If the return value isn't a string we'll convert to
+                // boolean and return the line on true else an empty string
+                // on false, removing that line
                 if (typeof line !== 'string') {
-                    line = '';
+                    line = !!line ? originalLine : '';
                 }
             };
 
@@ -150,9 +175,9 @@
     var defines = {};
 
     Stutter.register('define', function (identifier, replacement) {
-
+        var errorToken = Stutter.token + 'define: ';
         if (!identifier) {
-            throw Error('Invalid define syntax');
+            throw new StutterError('Invalid define syntax');
         }
 
         var identifierRegEx = new RegExp(identifier, 'g');
@@ -164,11 +189,13 @@
         
     }, defines);
 
+    // FIXME: Remove endif from here and also add the rest of the conditionals
     Stutter.register('ifdef', function (identifier) {
-        var endif = Stutter.prefix+'endif';
+        var errorToken = Stutter.token + 'ifdef: ';
+        var endif = Stutter.token + 'endif';
 
         if (!identifier) {
-            throw Error('Invalid ifdef syntax');
+            throw new StutterError('Invalid ifdef syntax');
         }
 
         var isDefined = !!defines[identifier];
@@ -182,23 +209,19 @@
 
             if (line.match(endif)) {
                 hasReachedEndIf = true;
-                return '';
+                return false;
             }
 
-            if (isDefined) {
-                return line;
-            }
-
-            return '';
+            return isDefined;
         };
     });
 
-    // Doesn't prevent recursive/infinite imports yet!
+    // Doesn't prevent recursive/infinite imports! (intentional at this point)
     Stutter.register('import', function (filePath) {
-        var errorPrefix = '@import: ';
+        var errorToken = Stutter.token + 'import: ';
 
         if (!filePath) {
-            throw Error(errorPrefix + 'Missing file path');
+            throw new StutterError('Missing file path');
         }
         
         // Handles single and double quote matched pairs
@@ -210,7 +233,7 @@
             .replace(/\s*"([^"]*)"/, '$1');
 
         if (!cleanPath) {
-            throw Error(errorPrefix + 'Invalid import url: ' + filePath);
+            throw new StutterError('Invalid import url: ' + filePath);
         }
 
         var output;
@@ -224,17 +247,17 @@
             // Check for 200 status for HTTP, but also catch if responseText
             // contains anything for local file:// access that return zero status
             if (request.status !== 200 && !request.responseText) {  
-                throw Error(errorPrefix + 'Importing file failed: ' + filePath + ' with status code: '+request.status);
+               throw new StutterError('Importing file failed: ' + filePath + ' with status code: '+request.status);
             }
 
             output = Stutter.process(request.responseText);
 
         } else {
-            throw Error('Non-browser use of @import isn\'t ready yet...sorry');
+            throw new StutterError('Non-browser use of @import isn\'t ready yet...sorry');
         }
 
         return output;
         
     }, defines);
 
-})();
+})(this);
