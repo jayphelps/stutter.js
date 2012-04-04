@@ -8,7 +8,7 @@
 (function (root) {
     "use strict";
 
-    // Internal type checkers
+    /* Internal helpers */
 
     var toString = Object.prototype.toString;
 
@@ -19,6 +19,11 @@
     var isString = function (obj) {
         return toString.call(obj) == '[object String]';
     };
+
+    // From http://stackoverflow.com/questions/3446170
+    var escapeStringForRegExp = function (str) {
+        return str.replace(/[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+    }
 
     // Assigned when we come across a directive and used if a StutterError
     // exception is raised 
@@ -43,7 +48,8 @@
         directives: {},
         handlers: [],
         directiveRegEx: null,
-        expandNewlineEscapes: true
+        expandNewlineEscapes: true,
+        escapeStringForRegExp: escapeStringForRegExp
     };
 
     var isBrowser;
@@ -188,12 +194,11 @@
     var defines = {};
 
     Stutter.register('define', function (identifier, replacement) {
-        var errorToken = Stutter.token + 'define: ';
         if (!identifier) {
             throw new StutterError('Invalid define syntax');
         }
 
-        var identifierRegEx = new RegExp(identifier, 'g');
+        var identifierRegEx = new RegExp(escapeStringForRegExp(identifier), 'g');
         var replacement = this[identifier] = replacement || true;
 
         return function (line) {
@@ -204,7 +209,6 @@
 
     // FIXME: Remove endif from here and also add the rest of the conditionals
     Stutter.register('ifdef', function (identifier) {
-        var errorToken = Stutter.token + 'ifdef: ';
         var endif = Stutter.token + 'endif';
 
         if (!identifier) {
@@ -231,8 +235,6 @@
 
     // Doesn't prevent recursive/infinite imports! (intentional at this point)
     Stutter.register('import', function (filePath) {
-        var errorToken = Stutter.token + 'import: ';
-
         if (!filePath) {
             throw new StutterError('Missing file path');
         }
