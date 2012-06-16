@@ -6,7 +6,7 @@ JavaScript preprocessor library. Easily add your own directives to make your cod
 Getting Started
 ---------------
 
-I'll be documenting usage shortly. Still very much a work in progress.
+Still very much a work in progress.
 
 
 ### Built-in directives
