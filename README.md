@@ -14,6 +14,8 @@ Still very much a work in progress.
 * @ifdef/@endif
 * @import
 
+If you prefer the hash (#) symbol or any other, you can change the prefix token by simply setting Stutter.token = "#"
+
 ### Registering your own directive
 
 ``` javascript
